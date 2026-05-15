@@ -17,6 +17,41 @@ function StatCard({ label, value, color = 'text-gray-800', description }) {
   )
 }
 
+const WATER_GOAL_ML = 2500
+
+function WaterCard({ totalMl, onAdd }) {
+  const pct = Math.min((totalMl / WATER_GOAL_ML) * 100, 100)
+
+  return (
+    <div className="bg-white shadow rounded-lg p-4 mb-4">
+      <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Water Intake</p>
+      <p className="text-2xl font-bold text-blue-500">
+        {totalMl} <span className="text-sm font-normal text-gray-400">/ {WATER_GOAL_ML} ml</span>
+      </p>
+      <p className="text-xs text-gray-400 mb-3">{pct.toFixed(0)}% of daily goal</p>
+
+      <div className="w-full bg-gray-100 rounded-full h-2 mb-4">
+        <div
+          className="bg-blue-400 h-2 rounded-full transition-all duration-300"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+
+      <div className="flex gap-2">
+        {[250, 500, 750].map((ml) => (
+          <button
+            key={ml}
+            onClick={() => onAdd(ml)}
+            className="flex-1 text-sm bg-blue-50 text-blue-600 border border-blue-200 rounded py-1 hover:bg-blue-100 transition-colors font-medium"
+          >
+            +{ml} ml
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 const CHART_HALF = 56 // px per side of the baseline
 
 function WeeklyChart({ data }) {
@@ -91,8 +126,12 @@ export default function Dashboard() {
   const [date, setDate] = useState(todayStr())
   const [summary, setSummary] = useState(null)
   const [trend, setTrend] = useState(null)
+  const [waterLogs, setWaterLogs] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
+  const fetchWater = (d) =>
+    client.get(`/api/v1/water-logs?log_date=${d}`).then(({ data }) => setWaterLogs(data))
 
   useEffect(() => {
     setLoading(true)
@@ -100,14 +139,27 @@ export default function Dashboard() {
     Promise.all([
       client.get(`/api/v1/dashboard/summary?log_date=${date}`),
       client.get('/api/v1/dashboard/weekly-trend'),
+      client.get(`/api/v1/water-logs?log_date=${date}`),
     ])
-      .then(([{ data: s }, { data: t }]) => {
+      .then(([{ data: s }, { data: t }, { data: w }]) => {
         setSummary(s)
         setTrend(t)
+        setWaterLogs(w)
       })
       .catch(() => setError('Failed to load summary'))
       .finally(() => setLoading(false))
   }, [date])
+
+  const handleAddWater = async (ml) => {
+    try {
+      await client.post('/api/v1/water-logs', { amount_ml: ml, log_date: date })
+      await fetchWater(date)
+    } catch {
+      setError('Failed to log water')
+    }
+  }
+
+  const totalWaterMl = waterLogs.reduce((s, l) => s + l.amount_ml, 0)
 
   const deficit = summary ? summary.tdee - summary.net_calories : null
   const isOver = deficit !== null && deficit < 0
@@ -150,6 +202,8 @@ export default function Dashboard() {
             </p>
             <p className="text-xs text-gray-400 mt-2">Calories consumed minus calories burned. Negative means a deficit; positive means a surplus.</p>
           </div>
+
+          <WaterCard totalMl={totalWaterMl} onAdd={handleAddWater} />
 
           {trend && <WeeklyChart data={trend} />}
 
