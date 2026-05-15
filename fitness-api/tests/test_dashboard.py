@@ -15,6 +15,9 @@ def test_summary_no_logs(client, auth_headers):
     assert data["calories_consumed"] == 0.0
     assert data["calories_burned"] == 0.0
     assert data["net_calories"] == 0.0
+    assert data["protein_g"] == 0.0
+    assert data["carbs_g"] == 0.0
+    assert data["fat_g"] == 0.0
 
 
 def test_summary_defaults_to_today(client, auth_headers):
@@ -64,6 +67,19 @@ def test_summary_net_calories_combined(client, auth_headers, food_item):
     data = resp.json()
     # 330 consumed - 350 burned = -20
     assert data["net_calories"] == pytest.approx(-20.0, abs=0.1)
+
+
+def test_summary_macros(client, auth_headers, food_item):
+    # Chicken Breast: protein=31g/100g, carb=0g/100g, fat=3.6g/100g — 200g serving
+    client.post(
+        "/api/v1/food-logs",
+        json={"food_item_id": food_item.id, "quantity_grams": 200.0, "log_date": "2026-05-15"},
+        headers=auth_headers,
+    )
+    data = client.get("/api/v1/dashboard/summary?log_date=2026-05-15", headers=auth_headers).json()
+    assert data["protein_g"] == pytest.approx(62.0)   # 31 * 2
+    assert data["carbs_g"] == pytest.approx(0.0)
+    assert data["fat_g"] == pytest.approx(7.2)         # 3.6 * 2
 
 
 def test_weekly_trend_returns_seven_days(client, auth_headers):
