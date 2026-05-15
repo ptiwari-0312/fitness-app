@@ -17,18 +17,94 @@ function StatCard({ label, value, color = 'text-gray-800', description }) {
   )
 }
 
+const CHART_HALF = 56 // px per side of the baseline
+
+function WeeklyChart({ data }) {
+  const maxAbs = Math.max(...data.map((d) => Math.abs(d.net_calories)), 1)
+
+  return (
+    <div className="bg-white shadow rounded-lg p-4 mb-6">
+      <p className="text-xs text-gray-400 uppercase tracking-wide mb-3">7-Day Net Calorie Trend</p>
+
+      <div className="flex gap-1" style={{ height: CHART_HALF * 2 + 1 }}>
+        {data.map((day) => {
+          const ratio = Math.abs(day.net_calories) / maxAbs
+          const barPx = day.net_calories === 0
+            ? 0
+            : Math.max(Math.round(ratio * CHART_HALF), 2)
+          const isSurplus = day.net_calories > 0
+
+          return (
+            <div key={day.log_date} className="flex-1 flex flex-col">
+              {/* Upper region — surplus bars grow downward from top */}
+              <div className="flex items-end justify-center" style={{ height: CHART_HALF }}>
+                {isSurplus && day.has_data && (
+                  <div
+                    className="w-full max-w-[28px] bg-orange-400 rounded-t"
+                    style={{ height: barPx }}
+                    title={`+${day.net_calories} kcal surplus`}
+                  />
+                )}
+              </div>
+
+              {/* Baseline */}
+              <div className="h-px bg-gray-300 w-full" />
+
+              {/* Lower region — deficit bars grow downward from baseline */}
+              <div className="flex items-start justify-center" style={{ height: CHART_HALF }}>
+                {!isSurplus && day.has_data && (
+                  <div
+                    className="w-full max-w-[28px] bg-green-400 rounded-b"
+                    style={{ height: barPx }}
+                    title={`${day.net_calories} kcal deficit`}
+                  />
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Day labels */}
+      <div className="flex gap-1 mt-1">
+        {data.map((day) => {
+          const label = new Date(day.log_date + 'T00:00:00').toLocaleDateString('en', {
+            weekday: 'short',
+          })
+          return (
+            <div key={day.log_date} className="flex-1 text-center text-xs text-gray-400">
+              {label}
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="flex justify-between mt-2">
+        <span className="text-xs text-green-500">↓ deficit</span>
+        <span className="text-xs text-orange-400">↑ surplus</span>
+      </div>
+    </div>
+  )
+}
+
 export default function Dashboard() {
   const [date, setDate] = useState(todayStr())
   const [summary, setSummary] = useState(null)
+  const [trend, setTrend] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
     setLoading(true)
     setError('')
-    client
-      .get(`/api/v1/dashboard/summary?log_date=${date}`)
-      .then(({ data }) => setSummary(data))
+    Promise.all([
+      client.get(`/api/v1/dashboard/summary?log_date=${date}`),
+      client.get('/api/v1/dashboard/weekly-trend'),
+    ])
+      .then(([{ data: s }, { data: t }]) => {
+        setSummary(s)
+        setTrend(t)
+      })
       .catch(() => setError('Failed to load summary'))
       .finally(() => setLoading(false))
   }, [date])
@@ -74,6 +150,8 @@ export default function Dashboard() {
             </p>
             <p className="text-xs text-gray-400 mt-2">Calories consumed minus calories burned. Negative means a deficit; positive means a surplus.</p>
           </div>
+
+          {trend && <WeeklyChart data={trend} />}
 
           <div className="flex gap-3">
             <Link
