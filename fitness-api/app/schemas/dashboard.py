@@ -1,3 +1,5 @@
+from datetime import date
+
 from pydantic import BaseModel
 
 
@@ -7,3 +9,9 @@ class DashboardOut(BaseModel):
     calories_consumed: float
     calories_burned: float
     net_calories: float
+
+
+class WeeklyTrendDay(BaseModel):
+    log_date: date
+    net_calories: float
+    has_data: bool
