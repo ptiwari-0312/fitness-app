@@ -22,3 +22,4 @@ class User(Base):
 
     food_logs = relationship("FoodLog", back_populates="user")
     activity_logs = relationship("ActivityLog", back_populates="user")
+    water_logs = relationship("WaterLog", back_populates="user")
