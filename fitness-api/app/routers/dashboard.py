@@ -37,6 +37,9 @@ def get_summary(
         log.food_item.calories_per_100g * log.quantity_grams / 100
         for log in food_logs
     )
+    protein_g = sum(log.food_item.protein_per_100g * log.quantity_grams / 100 for log in food_logs)
+    carbs_g = sum(log.food_item.carb_per_100g * log.quantity_grams / 100 for log in food_logs)
+    fat_g = sum(log.food_item.fat_per_100g * log.quantity_grams / 100 for log in food_logs)
 
     activity_logs = (
         db.query(ActivityLog)
@@ -51,6 +54,9 @@ def get_summary(
         calories_consumed=round(calories_consumed, 2),
         calories_burned=round(calories_burned, 2),
         net_calories=round(calories_consumed - calories_burned, 2),
+        protein_g=round(protein_g, 2),
+        carbs_g=round(carbs_g, 2),
+        fat_g=round(fat_g, 2),
     )
 
 

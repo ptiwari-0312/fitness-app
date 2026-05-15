@@ -9,6 +9,9 @@ class DashboardOut(BaseModel):
     calories_consumed: float
     calories_burned: float
     net_calories: float
+    protein_g: float
+    carbs_g: float
+    fat_g: float
 
 
 class WeeklyTrendDay(BaseModel):

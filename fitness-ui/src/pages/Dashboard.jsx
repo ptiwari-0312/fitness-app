@@ -17,6 +17,24 @@ function StatCard({ label, value, color = 'text-gray-800', description }) {
   )
 }
 
+function MacroChips({ protein, carbs, fat }) {
+  const chips = [
+    { label: 'Protein', value: protein, color: 'text-purple-600 bg-purple-50 border-purple-200' },
+    { label: 'Carbs',   value: carbs,   color: 'text-amber-600 bg-amber-50 border-amber-200' },
+    { label: 'Fat',     value: fat,     color: 'text-rose-600 bg-rose-50 border-rose-200' },
+  ]
+  return (
+    <div className="flex gap-2 mb-4">
+      {chips.map(({ label, value, color }) => (
+        <div key={label} className={`flex-1 text-center border rounded-lg py-2 px-3 ${color}`}>
+          <p className="text-xs font-medium uppercase tracking-wide opacity-70">{label}</p>
+          <p className="text-lg font-bold">{value ?? '—'}<span className="text-xs font-normal ml-1">g</span></p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 const WATER_GOAL_ML = 2500
 
 function WaterCard({ totalMl, onAdd }) {
@@ -188,6 +206,8 @@ export default function Dashboard() {
             <StatCard label="Consumed" value={summary.calories_consumed} color="text-orange-500" />
             <StatCard label="Burned" value={summary.calories_burned} color="text-teal-600" />
           </div>
+
+          <MacroChips protein={summary.protein_g} carbs={summary.carbs_g} fat={summary.fat_g} />
 
           <div className="bg-white shadow rounded-lg p-5 mb-6">
             <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Net Calories</p>
