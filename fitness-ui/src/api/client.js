@@ -1,0 +1,23 @@
+import axios from 'axios'
+import useAuthStore from '../store/authStore'
+
+const client = axios.create({
+  baseURL: 'http://localhost:8000',
+})
+
+client.interceptors.request.use((config) => {
+  const token = useAuthStore.getState().token
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
+})
+
+// Clear auth and let ProtectedRoute redirect on 401
+client.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    if (error.response?.status === 401) useAuthStore.getState().logout()
+    return Promise.reject(error)
+  }
+)
+
+export default client

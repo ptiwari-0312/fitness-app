@@ -1,0 +1,53 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+fitness-api/venv/
+venv/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# ── Node / React ───────────────────────────────────────────────────────────────
+fitness-ui/node_modules/
+node_modules/
+fitness-ui/dist/
+dist/
+
+# Vite cache
+fitness-ui/.vite/
+.vite/
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── OS / Editor ───────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── Alembic ───────────────────────────────────────────────────────────────────
+# Keep migrations; ignore local override configs if any
+# (nothing to ignore by default)
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage/
+.coverage

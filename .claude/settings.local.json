@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-Process *)",
+      "PowerShell(docker exec fitness-db *)",
+      "WebFetch(domain:api.nal.usda.gov)"
+    ]
+  }
+}
